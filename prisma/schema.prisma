@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  BARBER
+  ADMIN
+}
+
+model User {
+  userId String @id @default(cuid())
+  name String
+  email String @unique
+  password String
+  phoneNumber String @unique
+  isAuthenticated Boolean @default(false)
+  registerAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role Role @default(USER)
+  bookings Booking[]
+  barber BarberUser?
+}
+
+model BarberUser {
+  barberId String @id @default(cuid())
+  ratingAverage Float
+  description String
+  image String
+  user User @relation(fields: [barberUserId], references: [userId])
+  barberUserId String
+  bookings Booking[]
+}
+
+model Booking {
+  bookingId String @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status String
+  user User @relation(fields: [userBookingId], references: [userId])
+  userBookingId String
+  dateTime DateTime
+  barberUser BarberUser @relation(fields: [barberUserId], references: [barberId])
+  barberUserId String
+  model HaircutModel @relation(fields: [modelId], references: [haircutModelId])
+  modelId String
+  feedback Feedback?
+  payment Payment @relation(fields: [paymentBookingId], references: [paymentId])
+  paymentBookingId String
+}
+
+model Feedback {
+  feedbackId String @id @default(cuid())
+  rating Int
+  comments String
+  createdAt DateTime @default(now())
+  booking Booking @relation(fields: [bookingFeedbackId], references: [bookingId])
+  bookingFeedbackId String
+}
+
+model HaircutModel {
+  haircutModelId String @id @default(cuid())
+  name String @unique
+  price Int
+  proccessTime Int
+  bookings Booking[]
+}
+
+model Payment {
+  paymentId String @id @default(cuid())
+  name String
+  bookings Booking[]
+}
